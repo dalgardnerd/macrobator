@@ -5,6 +5,7 @@ export type CommonIngredient = {
 	name: string;
 	caloriesPer100g: number;
 	category: Category;
+	favorite?: boolean;
 };
 
 export const STORAGE_KEY = 'macrobator:common-ingredients-v1';

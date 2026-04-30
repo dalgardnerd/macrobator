@@ -66,6 +66,12 @@
 		})).filter((g) => g.items.length > 0)
 	);
 
+	const favoriteIngredients = $derived(
+		commonIngredients
+			.map((ing, i) => ({ ing, i }))
+			.filter(({ ing }) => ing.favorite === true)
+	);
+
 	// Manage-ingredients modal state
 	let manageDialog: HTMLDialogElement | null = $state(null);
 	let newSourceName = $state('');
@@ -87,6 +93,10 @@
 
 	function removeFromSource(i: number) {
 		commonIngredients.splice(i, 1);
+	}
+
+	function toggleFavorite(i: number) {
+		commonIngredients[i].favorite = !commonIngredients[i].favorite;
 	}
 
 	function resetSource() {
@@ -143,7 +153,8 @@
 				return {
 					name: item.name,
 					caloriesPer100g: item.caloriesPer100g,
-					category: isCategory(item.category) ? item.category : 'other'
+					category: isCategory(item.category) ? item.category : 'other',
+					favorite: item.favorite === true
 				};
 			});
 
@@ -238,10 +249,17 @@
 					<div class="flex flex-col sm:flex-row gap-2">
 						<select class="select select-bordered flex-1" bind:value={selectedKey}>
 							<option value="" disabled>Choose ingredient…</option>
+							{#if favoriteIngredients.length > 0}
+								<optgroup label="★ favorites">
+									{#each favoriteIngredients as entry}
+										<option value={String(entry.i)}>{entry.ing.name}</option>
+									{/each}
+								</optgroup>
+							{/if}
 							{#each groupedIngredients as group}
 								<optgroup label={group.cat}>
 									{#each group.items as entry}
-										<option value={String(entry.i)}>{entry.ing.name} — {entry.ing.caloriesPer100g} cal/100g</option>
+										<option value={String(entry.i)}>{entry.ing.name}</option>
 									{/each}
 								</optgroup>
 							{/each}
@@ -296,9 +314,19 @@
 			{#if ingredients.length > 0}
 				<div class="flex flex-wrap gap-3">
 					{#each ingredients as ingredient, i}
+						{@const sourceIdx = commonIngredients.findIndex((c) => c.name === ingredient.name)}
 						<div class="card bg-base-100 shadow w-48">
 							<div class="card-body p-4 gap-1">
-								<h2 class="card-title text-sm break-words leading-tight">{ingredient.name}</h2>
+								<div class="flex items-start gap-1">
+									<h2 class="card-title text-sm break-words leading-tight flex-1">{ingredient.name}</h2>
+									{#if sourceIdx >= 0}
+										<button
+											class="text-base leading-none {commonIngredients[sourceIdx].favorite ? 'text-warning' : 'text-base-content/30'}"
+											onclick={() => toggleFavorite(sourceIdx)}
+											aria-label={commonIngredients[sourceIdx].favorite ? 'Unfavorite' : 'Favorite'}
+										>{commonIngredients[sourceIdx].favorite ? '★' : '☆'}</button>
+									{/if}
+								</div>
 								<p class="text-2xl font-bold leading-tight">
 									{ingredient.weight}<span class="text-sm font-normal text-base-content/50"> g</span>
 								</p>
@@ -396,6 +424,11 @@
 						<li class="px-3 py-1 bg-base-200 text-xs font-semibold uppercase tracking-wide text-base-content/50 sticky top-0">{group.cat}</li>
 						{#each group.items as entry}
 							<li class="flex items-center gap-2 p-2">
+								<button
+									class="btn btn-xs btn-ghost {commonIngredients[entry.i].favorite ? 'text-warning' : 'text-base-content/30'}"
+									onclick={() => toggleFavorite(entry.i)}
+									aria-label={commonIngredients[entry.i].favorite ? 'Unfavorite' : 'Favorite'}
+								>{commonIngredients[entry.i].favorite ? '★' : '☆'}</button>
 								<input
 									class="input input-bordered input-xs flex-1"
 									bind:value={commonIngredients[entry.i].name}
