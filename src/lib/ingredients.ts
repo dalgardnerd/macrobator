@@ -17,7 +17,7 @@ export function isCategory(v: unknown): v is Category {
 export const DEFAULT_INGREDIENTS: CommonIngredient[] = [
 	// meat
 	{ name: 'Chicken breast', caloriesPer100g: 165, category: 'meat' },
-	{ name: 'Beef (lean ground)', caloriesPer100g: 250, category: 'meat' },
+	{ name: 'Ground Beef (80/20)', caloriesPer100g: 250, category: 'meat' },
 	{ name: 'Salmon', caloriesPer100g: 208, category: 'meat' },
 	{ name: 'Tuna (canned in water)', caloriesPer100g: 116, category: 'meat' },
 	{ name: 'Egg (whole)', caloriesPer100g: 155, category: 'meat' },
