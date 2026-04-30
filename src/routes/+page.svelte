@@ -1,7 +1,10 @@
 <script lang="ts">
 	import {
+		CATEGORIES,
 		DEFAULT_INGREDIENTS,
 		STORAGE_KEY,
+		isCategory,
+		type Category,
 		type CommonIngredient
 	} from '$lib/ingredients';
 
@@ -54,10 +57,20 @@
 		ingredients.some((ing) => ing.caloriesPer100g == null)
 	);
 
+	const groupedIngredients = $derived(
+		CATEGORIES.map((cat) => ({
+			cat,
+			items: commonIngredients
+				.map((ing, i) => ({ ing, i }))
+				.filter(({ ing }) => (isCategory(ing.category) ? ing.category : 'other') === cat)
+		})).filter((g) => g.items.length > 0)
+	);
+
 	// Manage-ingredients modal state
 	let manageDialog: HTMLDialogElement | null = $state(null);
 	let newSourceName = $state('');
 	let newSourceCalories = $state('');
+	let newSourceCategory: Category = $state('other');
 
 	function openManager() {
 		manageDialog?.showModal();
@@ -67,7 +80,7 @@
 		const name = newSourceName.trim();
 		const cal = parseFloat(newSourceCalories);
 		if (!name || isNaN(cal) || cal < 0) return;
-		commonIngredients.push({ name, caloriesPer100g: cal });
+		commonIngredients.push({ name, caloriesPer100g: cal, category: newSourceCategory });
 		newSourceName = '';
 		newSourceCalories = '';
 	}
@@ -127,7 +140,11 @@
 				) {
 					throw new Error(`Invalid entry at index ${i}`);
 				}
-				return { name: item.name, caloriesPer100g: item.caloriesPer100g };
+				return {
+					name: item.name,
+					caloriesPer100g: item.caloriesPer100g,
+					category: isCategory(item.category) ? item.category : 'other'
+				};
 			});
 
 			if (
@@ -221,8 +238,12 @@
 					<div class="flex flex-col sm:flex-row gap-2">
 						<select class="select select-bordered flex-1" bind:value={selectedKey}>
 							<option value="" disabled>Choose ingredient…</option>
-							{#each commonIngredients as ing, i}
-								<option value={String(i)}>{ing.name} — {ing.caloriesPer100g} cal/100g</option>
+							{#each groupedIngredients as group}
+								<optgroup label={group.cat}>
+									{#each group.items as entry}
+										<option value={String(entry.i)}>{entry.ing.name} — {entry.ing.caloriesPer100g} cal/100g</option>
+									{/each}
+								</optgroup>
 							{/each}
 							<option value="__custom__">Custom (one-off)…</option>
 						</select>
@@ -357,6 +378,11 @@
 				/>
 				<span class="text-base-content/50 text-xs whitespace-nowrap">cal/100g</span>
 			</label>
+			<select class="select select-bordered select-sm w-full sm:w-32" bind:value={newSourceCategory}>
+				{#each CATEGORIES as c}
+					<option value={c}>{c}</option>
+				{/each}
+			</select>
 			<button class="btn btn-sm btn-primary" onclick={addToSource}>Add</button>
 		</div>
 
@@ -366,28 +392,36 @@
 				<p class="p-4 text-sm text-base-content/40 text-center">No ingredients saved.</p>
 			{:else}
 				<ul class="divide-y divide-base-300">
-					{#each commonIngredients as ing, i}
-						<li class="flex items-center gap-2 p-2">
-							<input
-								class="input input-bordered input-xs flex-1"
-								bind:value={commonIngredients[i].name}
-							/>
-							<label class="input input-bordered input-xs flex items-center gap-1 w-32">
+					{#each groupedIngredients as group}
+						<li class="px-3 py-1 bg-base-200 text-xs font-semibold uppercase tracking-wide text-base-content/50 sticky top-0">{group.cat}</li>
+						{#each group.items as entry}
+							<li class="flex items-center gap-2 p-2">
 								<input
-									type="number"
-									class="w-full"
-									min="0"
-									step="1"
-									bind:value={commonIngredients[i].caloriesPer100g}
+									class="input input-bordered input-xs flex-1"
+									bind:value={commonIngredients[entry.i].name}
 								/>
-								<span class="text-base-content/50 text-[10px] whitespace-nowrap">cal/100g</span>
-							</label>
-							<button
-								class="btn btn-xs btn-ghost text-error"
-								onclick={() => removeFromSource(i)}
-								aria-label="Remove"
-							>✕</button>
-						</li>
+								<label class="input input-bordered input-xs flex items-center gap-1 w-28">
+									<input
+										type="number"
+										class="w-full"
+										min="0"
+										step="1"
+										bind:value={commonIngredients[entry.i].caloriesPer100g}
+									/>
+									<span class="text-base-content/50 text-[10px] whitespace-nowrap">cal/100g</span>
+								</label>
+								<select class="select select-bordered select-xs w-24" bind:value={commonIngredients[entry.i].category}>
+									{#each CATEGORIES as c}
+										<option value={c}>{c}</option>
+									{/each}
+								</select>
+								<button
+									class="btn btn-xs btn-ghost text-error"
+									onclick={() => removeFromSource(entry.i)}
+									aria-label="Remove"
+								>✕</button>
+							</li>
+						{/each}
 					{/each}
 				</ul>
 			{/if}

@@ -1,4 +1,4 @@
-export const CATEGORIES = ['meat', 'vegetables', 'fruit', 'grain', 'other'] as const;
+export const CATEGORIES = ['meat', 'vegetables', 'fruit', 'grain', 'dairy', 'other'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export type CommonIngredient = {
@@ -45,11 +45,13 @@ export const DEFAULT_INGREDIENTS: CommonIngredient[] = [
 	{ name: 'Blueberries', caloriesPer100g: 57, category: 'fruit' },
 	{ name: 'Strawberries', caloriesPer100g: 32, category: 'fruit' },
 
+	// dairy
+	{ name: 'Greek yogurt (plain)', caloriesPer100g: 59, category: 'dairy' },
+	{ name: 'Milk (whole)', caloriesPer100g: 61, category: 'dairy' },
+	{ name: 'Cheddar cheese', caloriesPer100g: 402, category: 'dairy' },
+	{ name: 'Butter', caloriesPer100g: 717, category: 'dairy' },
+	
 	// other
-	{ name: 'Greek yogurt (plain)', caloriesPer100g: 59, category: 'other' },
-	{ name: 'Milk (whole)', caloriesPer100g: 61, category: 'other' },
-	{ name: 'Cheddar cheese', caloriesPer100g: 402, category: 'other' },
-	{ name: 'Butter', caloriesPer100g: 717, category: 'other' },
 	{ name: 'Almonds', caloriesPer100g: 579, category: 'other' },
 	{ name: 'Peanut butter', caloriesPer100g: 588, category: 'other' },
 	{ name: 'Olive oil', caloriesPer100g: 884, category: 'other' }
